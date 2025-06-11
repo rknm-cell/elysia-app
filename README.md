@@ -58,11 +58,11 @@ This assignment builds a **single application** that you'll develop incrementall
     { id: 2, username: "user", password: "user123", role: "basic" }
   ];
   ```
-- [] **Problem**: How do we know which user is making the request to `/api/protected`?
+- [x] **Problem**: How do we know which user is making the request to `/api/protected`?
 
 ### Step 4: Add Authentication Middleware (First Attempt)
-- [ ] Create middleware that checks if user is admin
-- [ ] Apply it to the protected endpoint
+- [x] Create middleware that checks if user is admin
+- [x] Apply it to the protected endpoint
 - [ ] **Problem**: There's no way to identify the user from the request! We need some way to know who they are.
 
 ### Step 5: Introduce User Secrets
@@ -73,8 +73,8 @@ This assignment builds a **single application** that you'll develop incrementall
     { id: 2, username: "user", password: "user123", role: "basic", secret: "user-secret-456" }
   ];
   ```
-- [ ] Update middleware to check for secret in:
-  - [ ] `Authorization` header: `Bearer admin-secret-123`
+- [x] Update middleware to check for secret in:
+  - [x] `Authorization` header: `Bearer admin-secret-123`
   - [ ] OR Cookie: `secret=admin-secret-123`
 - [ ] Find user by secret, check if role is "admin"
 - [ ] **Success**: Now the protected endpoint actually works!

@@ -1,14 +1,49 @@
 import { Elysia, t } from "elysia";
 import { swagger } from "@elysiajs/swagger";
+import { bearer } from "@elysiajs/bearer";
 
-const users = [
-  { id: 1, username: "admin", password: "admin123", role: "admin" },
-  { id: 2, username: "user", password: "user123", role: "basic" },
+const users: User[] = [
+  {
+    id: 1,
+    username: "admin",
+    password: "admin123",
+    role: "admin",
+    secret: "admin-secret-123",
+  },
+  {
+    id: 2,
+    username: "user",
+    password: "user123",
+    role: "basic",
+    secret: "user-secret-456",
+  },
 ];
 
-const app = new Elysia();
+const userBody = t.Object({
+  id: t.Number(),
+  username: t.String(),
+  password: t.String(),
+  role: t.String(),
+  secret: t.String(),
+});
+type User = typeof userBody.static;
+
+export const addressController = new Elysia({
+    prefix: '/jwt',
+    detail: {
+        tags: ['jwt'],
+        security: [
+            {
+                bearerAuth: []
+            }
+        ]
+    }
+})
+
+const app = new Elysia({});
 
 app.get("/", () => "Hi");
+
 app.use(
   swagger({
     path: "/api-docs",
@@ -16,6 +51,15 @@ app.use(
       info: {
         title: "Elysia Server App Documentation",
         version: "1.0.0",
+      },
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+          },
+        },
       },
     },
   })
@@ -27,17 +71,65 @@ app.group("/api", (app) =>
       user: t.Object({
         username: t.String(),
         password: t.String(),
-      }),
-    })
-    .get("/public", { message: "This is public information" })
-    .get("/private", { message: "This is a private route" })
-    .post("/test", ({ body: { username, password } }) => ({username, password}), {
-      body: t.Object({
-        username: t.String(),
-        password: t.String(),
         role: t.String(),
       }),
     })
+    // public route
+    .get("/public", { message: "This is public information" })
+    // private route
+    .get(
+      "/private",
+      ({ body: { username, password } }) => ({ username, password }),
+      {
+        body: t.Object({
+          username: t.String(),
+          password: t.String(),
+        }),
+      }
+    )
+    .use(bearer())
+    .get("/bearer", ({ bearer }) => bearer, {
+      beforeHandle({ bearer, set, status }) {
+        console.log(bearer);
+        if (!bearer) {
+          set.headers[
+            "WWW-Authenticate"
+          ] = `Bearer realm='sign', error="invalid_request"`;
+
+          return status(400, "Unauthorized");
+        }
+      },
+    })
+
+    .post("/headers", (headers) => headers, {
+      headers: t.Object({
+        authorization: t.String(),
+      }),
+    })
+
+    .get("/cookie", ({ cookie }) => cookie, {
+      cookie: t.Cookie({
+        cookieName: t.String(),
+      }),
+    })
+
+    .post(
+      "/protected_route",
+      ({ body: { username, password } }) => {
+        const user = users.find((user) => user.username === username);
+
+        if (user && user.role === "admin") {
+          return { message: "Access granted" };
+        }
+        return { message: "Access denied" };
+      },
+      {
+        body: t.Object({
+          username: t.String(),
+          password: t.String(),
+        }),
+      }
+    )
 );
 
 app.listen(3000);
