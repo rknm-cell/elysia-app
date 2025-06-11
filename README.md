@@ -73,8 +73,8 @@ This assignment builds a **single application** that you'll develop incrementall
     { id: 2, username: "user", password: "user123", role: "basic", secret: "user-secret-456" }
   ];
   ```
-- [ ] Update middleware to check for secret in:
-  - [ ] `Authorization` header: `Bearer admin-secret-123`
+- [x] Update middleware to check for secret in:
+  - [x] `Authorization` header: `Bearer admin-secret-123`
   - [ ] OR Cookie: `secret=admin-secret-123`
 - [ ] Find user by secret, check if role is "admin"
 - [ ] **Success**: Now the protected endpoint actually works!

@@ -1,9 +1,22 @@
 import { Elysia, t } from "elysia";
 import { swagger } from "@elysiajs/swagger";
+import { bearer } from "@elysiajs/bearer";
 
 const users: User[] = [
-  { id: 1, username: "admin", password: "admin123", role: "admin" },
-  { id: 2, username: "user", password: "user123", role: "basic" },
+  {
+    id: 1,
+    username: "admin",
+    password: "admin123",
+    role: "admin",
+    secret: "admin-secret-123",
+  },
+  {
+    id: 2,
+    username: "user",
+    password: "user123",
+    role: "basic",
+    secret: "user-secret-456",
+  },
 ];
 
 const userBody = t.Object({
@@ -11,14 +24,26 @@ const userBody = t.Object({
   username: t.String(),
   password: t.String(),
   role: t.String(),
+  secret: t.String(),
 });
 type User = typeof userBody.static;
 
-const AuthModel = new Elysia().model({});
+export const addressController = new Elysia({
+    prefix: '/jwt',
+    detail: {
+        tags: ['jwt'],
+        security: [
+            {
+                bearerAuth: []
+            }
+        ]
+    }
+})
 
-const app = new Elysia();
+const app = new Elysia({});
 
 app.get("/", () => "Hi");
+
 app.use(
   swagger({
     path: "/api-docs",
@@ -26,6 +51,15 @@ app.use(
       info: {
         title: "Elysia Server App Documentation",
         version: "1.0.0",
+      },
+      components: {
+        securitySchemes: {
+          bearerAuth: {
+            type: "http",
+            scheme: "bearer",
+            bearerFormat: "JWT",
+          },
+        },
       },
     },
   })
@@ -53,6 +87,31 @@ app.group("/api", (app) =>
         }),
       }
     )
+    .use(bearer())
+    .get("/bearer", ({ bearer }) => bearer, {
+      beforeHandle({ bearer, set, status }) {
+        console.log(bearer);
+        if (!bearer) {
+          set.headers[
+            "WWW-Authenticate"
+          ] = `Bearer realm='sign', error="invalid_request"`;
+
+          return status(400, "Unauthorized");
+        }
+      },
+    })
+
+    .post("/headers", (headers) => headers, {
+      headers: t.Object({
+        authorization: t.String(),
+      }),
+    })
+
+    .get("/cookie", ({ cookie }) => cookie, {
+      cookie: t.Cookie({
+        cookieName: t.String(),
+      }),
+    })
 
     .post(
       "/protected_route",
