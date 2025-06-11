@@ -46,6 +46,7 @@ const app = new Elysia({ cookie: { secrets: "secret" } });
 app.get("/", () => "Hi");
 
 app
+  .use(bearer())
   .use(cookie())
   .get("/cookie", ({ cookie }) => {
     cookie.username.set({
@@ -65,7 +66,9 @@ app
         info: {
           title: "Elysia Server App Documentation",
           version: "1.0.0",
+          description: 'Elysiajs API test for authentication and authorization'
         },
+        servers:[{url: 'http://localhost:3000', description: 'Development server'}],
         components: {
           securitySchemes: {
             bearerAuth: {
@@ -81,6 +84,7 @@ app
 
 app.group("/api", (app) =>
   app
+
     .model({
       user: t.Object({
         username: t.String(),
@@ -100,20 +104,37 @@ app.group("/api", (app) =>
           password: t.String(),
         }),
       }
-    )
-    .use(bearer())
-    .get("/bearer", ({ bearer }) => bearer, {
-      beforeHandle({ bearer, set, status }) {
-        console.log(bearer);
-        if (!bearer) {
-          set.headers[
-            "WWW-Authenticate"
-          ] = `Bearer realm='sign', error="invalid_request"`;
 
-          return status(400, "Unauthorized");
+    )
+    .derive(({ headers }) => {
+        const auth = headers['authorization']
+        return {
+            bearer: auth?.startsWith('Bearer ') ? auth.slice(7) : null
         }
-      },
     })
+    .get("/verify-secret",({ bearer, set }) => {
+        if (!bearer) {
+          set.status = 401;
+          return { error: "Bearer token required" };
+        }
+
+        // Find user by secret
+        const user = users.find(u => u.secret === bearer);
+        
+        if (!user) {
+          set.status = 401;
+          return { error: "Invalid token" };
+        }
+
+        return { 
+          message: "Token valid", 
+          user: { 
+            id: user.id,
+            username: user.username, 
+            role: user.role 
+          }
+        };
+      })
 
     .post("/headers", (headers) => headers, {
       headers: t.Object({
@@ -124,8 +145,10 @@ app.group("/api", (app) =>
     .get("/cookie", ({ cookie }) => cookie, {
       cookie: t.Cookie({
         cookieName: t.String(),
-      }),
-    })
+      }
+    ),
+    }
+  )
 
     .post(
       "/protected_route",
@@ -141,10 +164,12 @@ app.group("/api", (app) =>
         body: t.Object({
           username: t.String(),
           password: t.String(),
-        }),
-      }
+        })
+      },
     )
-);
+  )
+  ,{detail: {summary: 'Protected Route'}}
+
 
 app.listen(3000);
 console.log(

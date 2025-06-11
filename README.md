@@ -75,9 +75,9 @@ This assignment builds a **single application** that you'll develop incrementall
   ```
 - [x] Update middleware to check for secret in:
   - [x] `Authorization` header: `Bearer admin-secret-123`
-  - [ ] OR Cookie: `secret=admin-secret-123`
-- [ ] Find user by secret, check if role is "admin"
-- [ ] **Success**: Now the protected endpoint actually works!
+  - [x] OR Cookie: `secret=admin-secret-123`
+- [x] Find user by secret, check if role is "admin"
+- [x] **Success**: Now the protected endpoint actually works!
 
 ### Step 6: Realize the Problems with Secrets
 Discuss these security issues:
