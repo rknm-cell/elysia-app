@@ -1,6 +1,7 @@
 import { Elysia, t } from "elysia";
 import { swagger } from "@elysiajs/swagger";
 import { bearer } from "@elysiajs/bearer";
+import { cookie } from "@elysiajs/cookie";
 
 const users: User[] = [
   {
@@ -29,41 +30,54 @@ const userBody = t.Object({
 type User = typeof userBody.static;
 
 export const addressController = new Elysia({
-    prefix: '/jwt',
-    detail: {
-        tags: ['jwt'],
-        security: [
-            {
-                bearerAuth: []
-            }
-        ]
-    }
-})
+  prefix: "/jwt",
+  detail: {
+    tags: ["jwt"],
+    security: [
+      {
+        bearerAuth: [],
+      },
+    ],
+  },
+});
 
-const app = new Elysia({});
+const app = new Elysia({ cookie: { secrets: "secret" } });
 
 app.get("/", () => "Hi");
 
-app.use(
-  swagger({
-    path: "/api-docs",
-    documentation: {
-      info: {
-        title: "Elysia Server App Documentation",
-        version: "1.0.0",
-      },
-      components: {
-        securitySchemes: {
-          bearerAuth: {
-            type: "http",
-            scheme: "bearer",
-            bearerFormat: "JWT",
+app
+  .use(cookie())
+  .get("/cookie", ({ cookie }) => {
+    cookie.username.set({
+      value: "admin",
+      maxAge: 60 * 60,
+      path: "/",
+      httpOnly: false,
+      secure: false,
+    });
+
+    return { cookie };
+  })
+  .use(
+    swagger({
+      path: "/api-docs",
+      documentation: {
+        info: {
+          title: "Elysia Server App Documentation",
+          version: "1.0.0",
+        },
+        components: {
+          securitySchemes: {
+            bearerAuth: {
+              type: "http",
+              scheme: "bearer",
+              bearerFormat: "JWT",
+            },
           },
         },
       },
-    },
-  })
-);
+    })
+  );
 
 app.group("/api", (app) =>
   app
