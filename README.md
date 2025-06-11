@@ -63,10 +63,10 @@ This assignment builds a **single application** that you'll develop incrementall
 ### Step 4: Add Authentication Middleware (First Attempt)
 - [x] Create middleware that checks if user is admin
 - [x] Apply it to the protected endpoint
-- [ ] **Problem**: There's no way to identify the user from the request! We need some way to know who they are.
+- [x] **Problem**: There's no way to identify the user from the request! We need some way to know who they are.
 
 ### Step 5: Introduce User Secrets
-- [ ] Give each user a unique SECRET:
+- [x] Give each user a unique SECRET:
   ```javascript
   const users = [
     { id: 1, username: "admin", password: "admin123", role: "admin", secret: "admin-secret-123" },
@@ -75,9 +75,9 @@ This assignment builds a **single application** that you'll develop incrementall
   ```
 - [x] Update middleware to check for secret in:
   - [x] `Authorization` header: `Bearer admin-secret-123`
-  - [ ] OR Cookie: `secret=admin-secret-123`
-- [ ] Find user by secret, check if role is "admin"
-- [ ] **Success**: Now the protected endpoint actually works!
+  - [x] OR Cookie: `secret=admin-secret-123`
+- [x] Find user by secret, check if role is "admin"
+- [x] **Success**: Now the protected endpoint actually works!
 
 ### Step 6: Realize the Problems with Secrets
 Discuss these security issues:
@@ -89,9 +89,9 @@ Discuss these security issues:
 **Solution**: We need something that can expire and be renewed automatically → **JWT Tokens**
 
 ### Step 7: Learn About JWTs
-- [ ] Read about JWT structure (header.payload.signature)
-- [ ] Understand signing vs verification
-- [ ] Learn about expiry (`exp` claim)
+- [x] Read about JWT structure (header.payload.signature)
+- [x] Understand signing vs verification
+- [x] Learn about expiry (`exp` claim)
 - [ ] Practice signing and decoding JWTs manually
 
 ### Step 8: Implement JWT System
