@@ -42,23 +42,23 @@ This assignment builds a **single application** that you'll develop incrementall
 - [x] Create two endpoints:
   - [x] `GET /api/public` - Returns: `{ message: "This is public information" }`
   - [x] `GET /api/protected` - Returns: `{ message: "Only admin should be able to see this" }`
-- [ ] **Problem**: Both endpoints are actually public! Anyone can access the "protected" one.
+- [x] **Problem**: Both endpoints are actually public! Anyone can access the "protected" one.
 
 ### Step 2: Add API Documentation
 - [x] Add Swagger/OpenAPI documentation for both endpoints
 - [x] Serve interactive docs at `/api-docs`
-- [ ] Document request/response schemas
-- [ ] Test both endpoints through Swagger UI
+- [x] Document request/response schemas
+- [x] Test both endpoints through Swagger UI
 
 ### Step 3: Create User System
-- [ ] Create an in-memory list of users with different roles:
+- [x] Create an in-memory list of users with different roles:
   ```javascript
   const users = [
     { id: 1, username: "admin", password: "admin123", role: "admin" },
     { id: 2, username: "user", password: "user123", role: "basic" }
   ];
   ```
-- [ ] **Problem**: How do we know which user is making the request to `/api/protected`?
+- [] **Problem**: How do we know which user is making the request to `/api/protected`?
 
 ### Step 4: Add Authentication Middleware (First Attempt)
 - [ ] Create middleware that checks if user is admin
