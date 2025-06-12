@@ -91,6 +91,7 @@ app.group("/api", (app) =>
       jwt({
         name: "jwt",
         secret: "Awww come on man",
+        expire: '1h'
       })
     )
     .model({
@@ -181,7 +182,7 @@ app.group("/api", (app) =>
         maxAge: 60 * 60,
         path: "/profile",
       });
-      return `Sign in as ${value}`;
+      return {value}
     })
     .get("/profile", async ({ jwt, status, cookie: { auth } }) => {
       const profile = await jwt.verify(auth.value);
@@ -192,10 +193,17 @@ app.group("/api", (app) =>
     })
     .get('/cookie-check', ({cookie}) => {
       if(cookie.auth){
-        return {authenticated: true, token: cookie};
+        return {authenticated: true, cookie};
       }
       return {authenticated: false};
     })
+    .get('/jwt-cookie', async ({jwt, status, cookie: { auth}}) => {
+      const user = await jwt.verify(auth.value);
+
+
+
+    })
+    
     
 ),
   { detail: { summary: "Protected Route" } };

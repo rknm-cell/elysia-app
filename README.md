@@ -99,7 +99,7 @@ Discuss these security issues:
 - [x] Create functions to:
   - [x] Sign JWTs with user info and expiration
   - [x] Verify and decode JWTs
-  - [ ] Handle expired tokens
+  - [x] Handle expired tokens
 
 ### Step 9: Create Login Endpoint
 - [ ] `POST /api/login` - Takes username/password
