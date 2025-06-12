@@ -2,6 +2,7 @@ import { Elysia, t } from "elysia";
 import { swagger } from "@elysiajs/swagger";
 import { bearer } from "@elysiajs/bearer";
 import { cookie } from "@elysiajs/cookie";
+import { jwt } from "@elysiajs/jwt";
 
 const users: User[] = [
   {
@@ -66,9 +67,11 @@ app
         info: {
           title: "Elysia Server App Documentation",
           version: "1.0.0",
-          description: 'Elysiajs API test for authentication and authorization'
+          description: "Elysiajs API test for authentication and authorization",
         },
-        servers:[{url: 'http://localhost:3000', description: 'Development server'}],
+        servers: [
+          { url: "http://localhost:3000", description: "Development server" },
+        ],
         components: {
           securitySchemes: {
             bearerAuth: {
@@ -84,7 +87,12 @@ app
 
 app.group("/api", (app) =>
   app
-
+    .use(
+      jwt({
+        name: "jwt",
+        secret: "Awww come on man",
+      })
+    )
     .model({
       user: t.Object({
         username: t.String(),
@@ -104,37 +112,36 @@ app.group("/api", (app) =>
           password: t.String(),
         }),
       }
-
     )
     .derive(({ headers }) => {
-        const auth = headers['authorization']
-        return {
-            bearer: auth?.startsWith('Bearer ') ? auth.slice(7) : null
-        }
+      const auth = headers["authorization"];
+      return {
+        bearer: auth?.startsWith("Bearer ") ? auth.slice(7) : null,
+      };
     })
-    .get("/verify-secret",({ bearer, set }) => {
-        if (!bearer) {
-          set.status = 401;
-          return { error: "Bearer token required" };
-        }
+    .get("/verify-secret", ({ bearer, set }) => {
+      if (!bearer) {
+        set.status = 401;
+        return { error: "Bearer token required" };
+      }
 
-        // Find user by secret
-        const user = users.find(u => u.secret === bearer);
-        
-        if (!user) {
-          set.status = 401;
-          return { error: "Invalid token" };
-        }
+      // Find user by secret
+      const user = users.find((u) => u.secret === bearer);
 
-        return { 
-          message: "Token valid", 
-          user: { 
-            id: user.id,
-            username: user.username, 
-            role: user.role 
-          }
-        };
-      })
+      if (!user) {
+        set.status = 401;
+        return { error: "Invalid token" };
+      }
+
+      return {
+        message: "Token valid",
+        user: {
+          id: user.id,
+          username: user.username,
+          role: user.role,
+        },
+      };
+    })
 
     .post("/headers", (headers) => headers, {
       headers: t.Object({
@@ -145,10 +152,8 @@ app.group("/api", (app) =>
     .get("/cookie", ({ cookie }) => cookie, {
       cookie: t.Cookie({
         cookieName: t.String(),
-      }
-    ),
-    }
-  )
+      }),
+    })
 
     .post(
       "/protected_route",
@@ -164,12 +169,36 @@ app.group("/api", (app) =>
         body: t.Object({
           username: t.String(),
           password: t.String(),
-        })
-      },
+        }),
+      }
     )
-  )
-  ,{detail: {summary: 'Protected Route'}}
+    .get("/jwt/:name", async ({ jwt, params: { name }, cookie: { auth } }) => {
+      const value = await jwt.sign({ name });
 
+      auth.set({
+        value,
+        httpOnly: true,
+        maxAge: 60 * 60,
+        path: "/profile",
+      });
+      return `Sign in as ${value}`;
+    })
+    .get("/profile", async ({ jwt, status, cookie: { auth } }) => {
+      const profile = await jwt.verify(auth.value);
+
+      if (!profile) return status(401, "Unauthorized");
+
+      return `Hello ${profile.name}`;
+    })
+    .get('/cookie-check', ({cookie}) => {
+      if(cookie.auth){
+        return {authenticated: true, token: cookie};
+      }
+      return {authenticated: false};
+    })
+    
+),
+  { detail: { summary: "Protected Route" } };
 
 app.listen(3000);
 console.log(
